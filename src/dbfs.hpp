@@ -33,7 +33,7 @@ namespace DBFS{
 	string suffix = "";
 	string prefix = "";
 	pos_t ch_size = 4*1024;
-	int filelength = 10;
+	int filelength = 16;
 	int max_try = 25;
 	bool clear_folders = true;
 	
