@@ -1,4 +1,4 @@
-.PHONY: all generate_o generate_t
+.PHONY: all generate_o generate_t dist
 
 CC=g++
 CFLAGS=-c -Wall -x c++ -std=c++17
@@ -16,6 +16,8 @@ generate_o: ${OBJS}
 
 generate_t: 
 	${CC} ${INCL} -o test.exe test/test.cpp 
+	
+dist: generate_o
 
 %.o: %.hpp
 	${CC} ${CFLAGS} ${INCL} $< -o $@

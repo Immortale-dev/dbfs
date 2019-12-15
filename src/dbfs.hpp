@@ -257,7 +257,8 @@ DBFS::string DBFS::get_file_path(string filename)
 void DBFS::File::create_path(string filepath)
 {
 	string curr = "";
-	for(int i=0;i<filepath.size();i++){
+	int filepath_size = filepath.size();
+	for(int i=0;i<filepath_size;i++){
 		if(filepath[i] == '/' && i > 0){
 			if(curr == "" || curr == "." || curr == "..")
 				continue;
@@ -269,12 +270,12 @@ void DBFS::File::create_path(string filepath)
 
 int DBFS::mkdir(string path)
 {
-	mode_t mode = 0733; // UNIX style permissions
 	int err = 0;
 	#if defined(_WIN32)
-	  err = ::_mkdir(path.c_str()); // can be used on Windows
+		err = ::_mkdir(path.c_str()); // can be used on Windows
 	#else 
-	  err = ::mkdir(path.c_str(),mode); // can be used on non-Windows
+		mode_t mode = 0733; // UNIX style permissions
+		err = ::mkdir(path.c_str(),mode); // can be used on non-Windows
 	#endif
 	return err;
 }
@@ -283,9 +284,9 @@ int DBFS::rmdir(string path)
 {
 	int err = 0;
 	#if defined(_WIN32)
-	  err = ::_rmdir(path.c_str()); // can be used on Windows
+		err = ::_rmdir(path.c_str()); // can be used on Windows
 	#else 
-	  err = ::rmdir(path.c_str()); // can be used on non-Windows
+		err = ::rmdir(path.c_str()); // can be used on non-Windows
 	#endif
 	return err;
 }
