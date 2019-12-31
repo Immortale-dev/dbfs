@@ -24,7 +24,7 @@ DBFS::File::File()
 
 DBFS::File::~File()
 {
-	
+	close();
 }
 
 DBFS::File::File(string filename)
@@ -111,6 +111,8 @@ bool DBFS::File::fail()
 
 void DBFS::File::close()
 {
+	if(!opened)
+		return;
 	opened = false;
 	st.close();
 }
