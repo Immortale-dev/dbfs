@@ -226,7 +226,7 @@ bool DBFS::move(string oldname, string newname)
 	return !r;
 }
 
-bool DBFS::remove(string filename)
+bool DBFS::remove(string filename, bool remove_path)
 {
 	string path = get_file_path(filename);
 	int r = std::remove(path.c_str());
@@ -238,7 +238,7 @@ bool DBFS::remove(string filename)
 	}
 	#endif
 	
-	if(!clear_folders)
+	if(!remove_path)
 		return !r;
 		
 	while(path != root){

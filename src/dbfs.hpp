@@ -84,7 +84,7 @@ namespace DBFS{
 	File* create();
 	File* create(string filename);
 	bool move(string oldname, string newname);
-	bool remove(string filename);
+	bool remove(string filename, bool remove_path = true);
 	bool exists(string filename);
 	
 	int mkdir(string path);
