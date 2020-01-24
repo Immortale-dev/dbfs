@@ -1,6 +1,5 @@
 #include "dbfs.hpp"
 
-
 namespace DBFS{
 	
 	std::mt19937 mt_rand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
@@ -12,6 +11,8 @@ namespace DBFS{
 	int filelength = 16;
 	int max_try = 25;
 	bool clear_folders = true;
+	std::mutex mtx;
+	std::mutex mtx_r;
 	
 }
 
@@ -125,13 +126,11 @@ DBFS::string DBFS::File::name()
 bool DBFS::File::move(string newname)
 {
 	close();
-	create_path(get_file_path(newname));
 	bool r = DBFS::move(filename, newname);
 	if(!r){
 		open();
 		return false;
 	}
-	DBFS::remove(filename);
 	filename = newname;
 	open();
 	return r;
@@ -154,8 +153,10 @@ DBFS::fstream DBFS::File::create_stream(string filename)
 {
 	string filepath = DBFS::get_file_path(filename);
 	if(!exists(filename)){
+		mtx.lock();
 		create_path(filepath);
 		std::ofstream f(filepath);
+		mtx.unlock();
 	}
 	return fstream(filepath);
 }
@@ -167,7 +168,7 @@ DBFS::string DBFS::get_file_path(string filename)
 	return root + "/" + f1 + "/" + f2 + "/" + prefix + filename + suffix;
 }
 
-void DBFS::File::create_path(string filepath)
+void DBFS::create_path(string filepath)
 {
 	string curr = "";
 	int filepath_size = filepath.size();
@@ -178,6 +179,18 @@ void DBFS::File::create_path(string filepath)
 			DBFS::mkdir(curr);
 		}
 		curr.push_back(filepath[i]);
+	}
+}
+
+void DBFS::remove_path(string path)
+{
+	char c = '\0';
+	while(path != root){
+		if(c == '/'){
+			DBFS::rmdir(path.c_str());
+		}
+		c = path.back();
+		path.pop_back();
 	}
 }
 
@@ -215,39 +228,39 @@ bool DBFS::exists(string filename)
 
 bool DBFS::move(string oldname, string newname)
 {
+	mtx.lock();
+	DBFS::create_path(get_file_path(newname));
 	int r = std::rename(get_file_path(oldname).c_str(), get_file_path(newname).c_str());
+	DBFS::remove_path(get_file_path(oldname));
+	mtx.unlock();
 	
 	#ifdef DEBUG
 	if(r == -1){
-		std::cout << "Error: " << strerror(errno) << std::endl;
+		std::cout << "Error1: " << strerror(errno) << std::endl;
 	}
 	#endif
 	
 	return !r;
 }
 
-bool DBFS::remove(string filename, bool remove_path)
+bool DBFS::remove(string filename, bool rem_path)
 {
 	string path = get_file_path(filename);
 	int r = std::remove(path.c_str());
-	char c = '\0';
 	
 	#ifdef DEBUG
 	if(r == -1){
-		std::cout << "Error: " << strerror(errno) << std::endl;
+		std::cout << "Error2: " << strerror(errno) << std::endl;
 	}
 	#endif
 	
-	if(!remove_path)
+	if(!rem_path)
 		return !r;
 		
-	while(path != root){
-		if(c == '/'){
-			DBFS::rmdir(path.c_str());
-		}
-		c = path.back();
-		path.pop_back();
-	}
+	mtx.lock();
+	DBFS::remove_path(path);
+	mtx.unlock();
+	
 	return !r;
 }
 
@@ -267,11 +280,13 @@ DBFS::File* DBFS::create(string filename)
 
 DBFS::string DBFS::random_filename()
 {
+	mtx_r.lock();
 	string ret = "";
 	for(int i=0;i<filelength;i++){
 		int rnd = mt_rand() % 36;
 		char c = rnd < 10 ? rnd+'0' : rnd-10+'a';
 		ret.push_back(c);
 	}
+	mtx_r.unlock();
 	return ret;
 }

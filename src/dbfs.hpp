@@ -1,6 +1,8 @@
 #ifndef DBFS_H
 #define DBFS_H
 
+#define DEBUG
+
 #ifdef DEBUG
 	#include <errno.h>
 	#include <iostream>
@@ -14,6 +16,7 @@
 #include <algorithm>
 #include <random>
 #include <chrono>
+#include <mutex>
 
 #ifdef _WIN32
 	#include <direct.h>
@@ -37,6 +40,7 @@ namespace DBFS{
 	extern int filelength;
 	extern int max_try;
 	extern bool clear_folders;
+	extern std::mutex mtx;
 	
 	class File{
 		public:
@@ -76,7 +80,6 @@ namespace DBFS{
 			bool opened = false;
 			string filename = "";
 			
-			void create_path(string filename);
 			fstream create_stream(string filename);
 	};
 	
@@ -87,6 +90,8 @@ namespace DBFS{
 	bool move(string oldname, string newname);
 	bool remove(string filename, bool remove_path = true);
 	bool exists(string filename);
+	void create_path(string filename);
+	void remove_path(string filepath);
 	
 	int mkdir(string path);
 	int rmdir(string path);
