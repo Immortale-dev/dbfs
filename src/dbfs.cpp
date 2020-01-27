@@ -35,9 +35,18 @@ DBFS::File::File(string filename)
 
 bool DBFS::File::open()
 {
-	if(is_open() && fail())
+	if(is_open() && fail()){
+		#ifdef DEBUG
+		SHOW_ERROR;
+		#endif
 		return true;
+	}
 	st = create_stream(filename);
+	#ifdef DEBUG
+	if(fail()){
+		SHOW_ERROR;
+	}
+	#endif
 	return opened = !fail();
 }
 
@@ -67,8 +76,18 @@ DBFS::fstream& DBFS::File::stream()
 
 void DBFS::File::read(char* val, pos_t size)
 {
+	#ifdef DEBUG
+	if(!is_open()){
+		SHOW_ERROR;
+	}
+	#endif
 	st.seekg(pos);
 	st.read(val, size);
+	#ifdef DEBUG
+	if(fail()){
+		SHOW_ERROR;
+	}
+	#endif
 	pos = st.tellg();
 }
 
@@ -77,6 +96,11 @@ DBFS::pos_t DBFS::File::write(char* val, pos_t size)
 {
 	st.seekp(pos);
 	st.write(val, size);
+	#ifdef DEBUG
+	if(fail()){
+		SHOW_ERROR;
+	}
+	#endif
 	return pos = st.tellp();
 }
 
@@ -90,6 +114,11 @@ DBFS::pos_t DBFS::File::write(fstream& val, pos_t size)
 		st.write(buf, sz);
 		size -= sz;
 	}
+	#ifdef DEBUG
+	if(fail()){
+		SHOW_ERROR;
+	}
+	#endif
 	return pos = st.tellp();
 }
 
@@ -128,6 +157,9 @@ bool DBFS::File::move(string newname)
 	close();
 	bool r = DBFS::move(filename, newname);
 	if(!r){
+		#ifdef DEBUG
+		SHOW_ERROR;
+		#endif
 		open();
 		return false;
 	}
@@ -235,8 +267,8 @@ bool DBFS::move(string oldname, string newname)
 	mtx.unlock();
 	
 	#ifdef DEBUG
-	if(r == -1){
-		std::cout << "Error1: " << strerror(errno) << std::endl;
+	if(r != 0){
+		SHOW_ERROR;
 	}
 	#endif
 	
@@ -246,18 +278,20 @@ bool DBFS::move(string oldname, string newname)
 bool DBFS::remove(string filename, bool rem_path)
 {
 	string path = get_file_path(filename);
+	mtx.lock();
 	int r = std::remove(path.c_str());
 	
 	#ifdef DEBUG
-	if(r == -1){
-		std::cout << "Error2: " << strerror(errno) << std::endl;
+	if(r != 0){
+		SHOW_ERROR;
 	}
 	#endif
 	
-	if(!rem_path)
+	if(!rem_path){
+		mtx.unlock();
 		return !r;
+	}
 		
-	mtx.lock();
 	DBFS::remove_path(path);
 	mtx.unlock();
 	
