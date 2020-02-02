@@ -118,9 +118,11 @@ DBFS::pos_t DBFS::File::write(T val)
 {
 	st.seekp(pos);
 	st << val;
+	#ifdef DEBUG
 	if(st.fail()){
 		SHOW_ERROR;
 	}
+	#endif
 	return pos = st.tellp();
 }
 
