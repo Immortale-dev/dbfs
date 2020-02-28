@@ -75,11 +75,16 @@ namespace DBFS{
 			bool fail();
 			fstream& stream();
 			
+			std::mutex& get_mutex();
+			std::lock_guard<std::mutex> get_lock();
+			
 		private:
 			pos_t pos = 0;
 			fstream st;
 			bool opened = false;
 			string filename = "";
+			std::mutex mtx;
+			
 			
 			fstream create_stream(string filename);
 	};

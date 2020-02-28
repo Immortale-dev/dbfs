@@ -180,6 +180,15 @@ bool DBFS::File::remove()
 	return r;
 }
 
+std::mutex& DBFS::File::get_mutex()
+{
+	return mtx;
+}
+
+std::lock_guard<std::mutex> DBFS::File::get_lock()
+{
+	return std::lock_guard<std::mutex>(get_mutex());
+}
 
 DBFS::fstream DBFS::File::create_stream(string filename)
 {

@@ -182,69 +182,99 @@ DESCRIBE("DBFS", {
 		std::mutex mtx;
 		std::unordered_set<string> files;
 		
-		
-		IT("Should succeed", {
-			vector<thread> v;
-			for(int i=0;i<1000;i++){
-				std::thread t([&mtx,&files](int ind){
-					if(ind == 0){
-						DBFS::File* f = DBFS::create();
-						string name = f->name();
-						f->close();
-						if(!DBFS::exists(name)){
-							TEST_FAILED();
-						}
-						mtx.lock();
-						files.insert(name);
-						mtx.unlock();
-					}
-					else if(ind == 1){
-						mtx.lock();
-						if(files.begin() == files.end()){
+		DESCRIBE("Proceed with 1000 create/delete operations", {
+			IT("Should succeed", {
+				vector<thread> v;
+				for(int i=0;i<1000;i++){
+					std::thread t([&mtx,&files](int ind){
+						if(ind == 0){
+							DBFS::File* f = DBFS::create();
+							string name = f->name();
+							f->close();
+							if(!DBFS::exists(name)){
+								TEST_FAILED();
+							}
+							mtx.lock();
+							files.insert(name);
 							mtx.unlock();
-							return;
 						}
-						string name = *(files.begin());
-						files.erase(name);
-						mtx.unlock();
-						string nname = DBFS::random_filename();
-						DBFS::move(name,nname);
-						if(!DBFS::exists(nname)){
-							//cout << "HEREF" << endl;
-							TEST_FAILED();
-						}
-						mtx.lock();
-						files.insert(nname);
-						mtx.unlock();
-					}
-					else{
-						mtx.lock();
-						if(files.begin() == files.end()){
+						else if(ind == 1){
+							mtx.lock();
+							if(files.begin() == files.end()){
+								mtx.unlock();
+								return;
+							}
+							string name = *(files.begin());
+							files.erase(name);
 							mtx.unlock();
-							return;
+							string nname = DBFS::random_filename();
+							DBFS::move(name,nname);
+							if(!DBFS::exists(nname)){
+								//cout << "HEREF" << endl;
+								TEST_FAILED();
+							}
+							mtx.lock();
+							files.insert(nname);
+							mtx.unlock();
 						}
-						string name = *(files.begin());
-						files.erase(name);
-						mtx.unlock();
-						DBFS::remove(name);
-						if(DBFS::exists(name)){
-							TEST_FAILED();
+						else{
+							mtx.lock();
+							if(files.begin() == files.end()){
+								mtx.unlock();
+								return;
+							}
+							string name = *(files.begin());
+							files.erase(name);
+							mtx.unlock();
+							DBFS::remove(name);
+							if(DBFS::exists(name)){
+								TEST_FAILED();
+							}
 						}
-					}
-				}, rand()%3);
-				v.push_back(move(t));
-			}
-			for(auto &it : v){
-				it.join();
-			}
-			for(auto &it : files){
-				if(!DBFS::exists(it)){
-					TEST_FAILED();
+					}, rand()%3);
+					v.push_back(move(t));
 				}
-				DBFS::remove(it);
-			}
-			
-			TEST_SUCCEED();
+				for(auto &it : v){
+					it.join();
+				}
+				for(auto &it : files){
+					if(!DBFS::exists(it)){
+						TEST_FAILED();
+					}
+					DBFS::remove(it);
+				}
+				
+				TEST_SUCCEED();
+			});
+		});
+		
+		DESCRIBE("get_lock should work and block file from being writed from second thread", {
+			DBFS::File* f = DBFS::create();
+			BEFORE_ALL({
+				thread t1([&f](){
+					auto lock = f->get_lock();
+					for(int i=0;i<10;i++){
+						f->write("0");
+						this_thread::sleep_for(chrono::milliseconds(10));
+					}
+				});
+				this_thread::sleep_for(chrono::milliseconds(10));
+				thread t2([&f](){
+					auto lock = f->get_lock();
+					for(int i=0;i<10;i++){
+						f->write("1");
+						this_thread::sleep_for(chrono::milliseconds(10));
+					}
+				});
+				t1.join();
+				t2.join();
+			});
+			IT("content of file should equal to `00000000001111111111`",{
+				f->seek(0);
+				char* buf = new char[20];
+				f->read(buf,20);
+				EXPECT(string(buf,20)).toBe("00000000001111111111");
+			});
 		});
 	});
 });
