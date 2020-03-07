@@ -260,6 +260,7 @@ int DBFS::rmdir(string path)
 
 bool DBFS::exists(string filename)
 {
+	std::lock_guard<std::mutex> lock(mtx);
 	if(FILE *file = fopen(get_file_path(filename).c_str(), "r")){
         fclose(file);
         return true;
