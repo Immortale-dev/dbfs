@@ -41,9 +41,19 @@ bool DBFS::File::open()
 		#endif
 		return true;
 	}
-	st = create_stream(filename);
+	
+	int trys = 5;
+	while(trys--){
+		st = create_stream(filename);
+		if(!fail())
+			break;
+		#ifdef DEBUG
+		std::cout << "RETRY_FOR: " + filename + "\n";
+		#endif
+	}
 	#ifdef DEBUG
 	if(fail()){
+		std::cout << "PROBLEM_FILE_IS: " + filename + "\n";
 		SHOW_ERROR;
 	}
 	#endif
@@ -193,11 +203,10 @@ std::lock_guard<std::mutex> DBFS::File::get_lock()
 DBFS::fstream DBFS::File::create_stream(string filename)
 {
 	string filepath = DBFS::get_file_path(filename);
+	std::lock_guard<std::mutex> lock(mtx);
 	if(!exists(filename)){
-		mtx.lock();
 		create_path(filepath);
 		std::ofstream f(filepath);
-		mtx.unlock();
 	}
 	return fstream(filepath);
 }
@@ -215,8 +224,10 @@ void DBFS::create_path(string filepath)
 	int filepath_size = filepath.size();
 	for(int i=0;i<filepath_size;i++){
 		if(filepath[i] == '/' && i > 0){
-			if(curr == "" || curr == "." || curr == "..")
+			if(curr == "" || curr == "." || curr == ".."){
+				//curr.push_back(filepath[i]);
 				continue;
+			}
 			DBFS::mkdir(curr);
 		}
 		curr.push_back(filepath[i]);
@@ -260,12 +271,12 @@ int DBFS::rmdir(string path)
 
 bool DBFS::exists(string filename)
 {
-	std::lock_guard<std::mutex> lock(mtx);
+	//std::lock_guard<std::mutex> lock(mtx);
 	if(FILE *file = fopen(get_file_path(filename).c_str(), "r")){
-        fclose(file);
-        return true;
-    }
-    return false;
+		fclose(file);
+		return true;
+	}
+	return false;
 }
 
 bool DBFS::move(string oldname, string newname)
@@ -273,14 +284,13 @@ bool DBFS::move(string oldname, string newname)
 	mtx.lock();
 	DBFS::create_path(get_file_path(newname));
 	int r = std::rename(get_file_path(oldname).c_str(), get_file_path(newname).c_str());
-	DBFS::remove_path(get_file_path(oldname));
-	mtx.unlock();
-	
 	#ifdef DEBUG
 	if(r != 0){
 		SHOW_ERROR;
 	}
 	#endif
+	DBFS::remove_path(get_file_path(oldname));
+	mtx.unlock();
 	
 	return !r;
 }
@@ -293,7 +303,7 @@ bool DBFS::remove(string filename, bool rem_path)
 	
 	#ifdef DEBUG
 	if(r != 0){
-		SHOW_ERROR;
+		//SHOW_ERROR; 
 	}
 	#endif
 	

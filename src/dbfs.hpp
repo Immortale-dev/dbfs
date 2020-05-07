@@ -18,6 +18,7 @@
 #include <random>
 #include <chrono>
 #include <mutex>
+#include <cassert>
 
 #ifdef _WIN32
 	#include <direct.h>
