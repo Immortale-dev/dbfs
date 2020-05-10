@@ -84,7 +84,7 @@ namespace DBFS{
 			fstream st;
 			bool opened = false;
 			string filename = "";
-			std::mutex mtx;
+			std::mutex mtx, rmtx;
 			
 			
 			fstream create_stream(string filename);

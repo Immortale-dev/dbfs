@@ -92,10 +92,19 @@ void DBFS::File::read(char* val, pos_t size)
 	}
 	#endif
 	st.seekg(pos);
+	#ifdef DEBUG
+	if(fail()){
+		SHOW_ERROR;
+		std::cout << "Filename: " + name() + "\n";
+		assert(false);
+	}
+	#endif
 	st.read(val, size);
 	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
+		std::cout << "Filename: " + name() + "\n";
+		assert(false);
 	}
 	#endif
 	pos = st.tellg();
@@ -105,10 +114,19 @@ void DBFS::File::read(char* val, pos_t size)
 DBFS::pos_t DBFS::File::write(char* val, pos_t size)
 {
 	st.seekp(pos);
+	#ifdef DEBUG
+	if(fail()){
+		SHOW_ERROR;
+		std::cout << "Filename: " + name() + "\n";
+		assert(false);
+	}
+	#endif
 	st.write(val, size);
 	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
+		std::cout << "Filename: " + name() + "\n";
+		assert(false);
 	}
 	#endif
 	return pos = st.tellp();
@@ -192,7 +210,7 @@ bool DBFS::File::remove()
 
 std::mutex& DBFS::File::get_mutex()
 {
-	return mtx;
+	return rmtx; 
 }
 
 std::lock_guard<std::mutex> DBFS::File::get_lock()
@@ -303,6 +321,7 @@ bool DBFS::remove(string filename, bool rem_path)
 	
 	#ifdef DEBUG
 	if(r != 0){
+		// Doesn't show error as it is possible and legal scenario
 		//SHOW_ERROR; 
 	}
 	#endif
