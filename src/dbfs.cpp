@@ -47,9 +47,6 @@ bool DBFS::File::open()
 		st = create_stream(filename);
 		if(!fail())
 			break;
-		#ifdef DEBUG
-		std::cout << "RETRY_FOR: " + filename + "\n";
-		#endif
 	}
 	#ifdef DEBUG
 	if(fail()){
@@ -142,6 +139,7 @@ DBFS::pos_t DBFS::File::write(fstream& val, pos_t size)
 		st.write(buf, sz);
 		size -= sz;
 	}
+	delete[] buf;
 	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
@@ -321,7 +319,7 @@ bool DBFS::remove(string filename, bool rem_path)
 	
 	#ifdef DEBUG
 	if(r != 0){
-		// Doesn't show error as it is possible and legal scenario
+		// Do not show error as it is possible and legal scenario
 		//SHOW_ERROR; 
 	}
 	#endif
