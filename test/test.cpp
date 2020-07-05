@@ -178,6 +178,18 @@ DESCRIBE("DBFS", {
 		});
 	});
 	
+	DESCRIBE("File::on_close", {
+		IT("should delete file after it is closed", {
+			DBFS::File* f = DBFS::create();
+			string name = f->name();
+			f->on_close([](DBFS::File* file){
+				file->remove();
+			});
+			f->close();
+			EXPECT(!DBFS::exists(name));
+		});
+	});
+	
 	DESCRIBE("Multithreading test", {
 		std::mutex mtx;
 		std::unordered_set<string> files;

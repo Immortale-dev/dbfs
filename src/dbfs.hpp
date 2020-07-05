@@ -19,6 +19,7 @@
 #include <chrono>
 #include <mutex>
 #include <cassert>
+#include <functional>
 
 #ifdef _WIN32
 	#include <direct.h>
@@ -76,6 +77,8 @@ namespace DBFS{
 			bool fail();
 			fstream& stream();
 			
+			void on_close(std::function<void(File*)> fn);
+			
 			std::mutex& get_mutex();
 			std::lock_guard<std::mutex> get_lock();
 			
@@ -85,6 +88,7 @@ namespace DBFS{
 			bool opened = false;
 			string filename = "";
 			std::mutex mtx, rmtx;
+			std::function<void(File*)> on_close_fn;
 			
 			
 			fstream create_stream(string filename);
