@@ -8,11 +8,12 @@ namespace DBFS{
 	string suffix = "";
 	string prefix = "";
 	pos_t ch_size = 4*1024;
-	int filelength = 16;
+	int filelength = 10;
 	int max_try = 25;
 	bool clear_folders = true;
 	std::mutex mtx;
 	std::mutex mtx_r;
+	bool suffix_minutex = true;
 	
 }
 
@@ -366,6 +367,17 @@ DBFS::string DBFS::random_filename()
 		char c = rnd < 10 ? rnd+'0' : rnd-10+'a';
 		ret.push_back(c);
 	}
+	
+	if(suffix_minutex){
+		unsigned int ctime = time(NULL)/60;
+		while(ctime > 0){
+			int rnd = ctime % 36;
+			ctime /= 36;
+			char c = rnd < 10 ? rnd+'0' : rnd-10+'a';
+			ret.push_back(c);
+		}
+	}
+	
 	mtx_r.unlock();
 	return ret;
 }

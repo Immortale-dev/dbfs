@@ -114,6 +114,12 @@ template<typename T>
 void DBFS::File::read(T& val)
 {
 	st.seekg(pos);
+	#ifdef DEBUG
+	if(st.fail()){
+		SHOW_ERROR;
+		std::cout << "FILE: " + name() + "\n";
+	}
+	#endif
 	st >> val;
 	#ifdef DEBUG
 	if(st.fail()){

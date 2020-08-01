@@ -33,8 +33,8 @@ DESCRIBE("DBFS", {
 			delete f;
 		});
 		
-		IT("File length should be equal to " + to_string(DBFS::filelength), {
-			EXPECT(f->name().size()).toBe(DBFS::filelength);
+		IT("File length should be greater or equal to " + to_string(DBFS::filelength), {
+			EXPECT(f->name().size()).toBeGreaterThanOrEqual(DBFS::filelength);
 		});
 		
 		IT("File name should contain only alphabetic letters and numbers", {
