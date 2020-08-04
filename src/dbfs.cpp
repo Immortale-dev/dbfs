@@ -49,6 +49,7 @@ bool DBFS::File::open()
 		if(!fail())
 			break;
 	}
+	p_updated = g_updated = false;
 	#ifdef DEBUG
 	if(fail()){
 		std::cout << "PROBLEM_FILE_IS: " + filename + "\n";
@@ -66,14 +67,43 @@ bool DBFS::File::open(string filename)
 	return open();
 }
 
-void DBFS::File::seek(pos_t p)
+void DBFS::File::seekp(pos_t p)
 {
-	pos = p;
+	st.seekp(p);
+	pos_p = p;
+	p_updated = true;
 }
 
-DBFS::pos_t DBFS::File::tell()
+void DBFS::File::seekg(pos_t p)
 {
-	return pos;
+	if(g_updated && p == pos_g){
+		return;
+	}
+	if(g_updated && p > pos_g && pos_g + st.rdbuf()->in_avail() >= p){
+		st.ignore(p-pos_g);
+		pos_g = p;
+		return;
+	}
+	pos_g = p;
+	st.seekg(p);
+}
+
+DBFS::pos_t DBFS::File::tellp()
+{
+	if(p_updated){
+		return pos_p;
+	}
+	p_updated = true;
+	return pos_p = st.tellp();
+}
+
+DBFS::pos_t DBFS::File::tellg()
+{
+	if(g_updated){
+		return pos_g;
+	}
+	g_updated = true;
+	return pos_g = st.tellg();
 }
 
 DBFS::fstream& DBFS::File::stream()
@@ -89,7 +119,7 @@ void DBFS::File::read(char* val, pos_t size)
 		SHOW_ERROR;
 	}
 	#endif
-	st.seekg(pos);
+	//st.seekg(pos);
 	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
@@ -98,6 +128,7 @@ void DBFS::File::read(char* val, pos_t size)
 	}
 	#endif
 	st.read(val, size);
+	pos_g += size;
 	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
@@ -105,13 +136,13 @@ void DBFS::File::read(char* val, pos_t size)
 		assert(false);
 	}
 	#endif
-	pos = st.tellg();
+	//pos = st.tellg();
 }
 
 
-DBFS::pos_t DBFS::File::write(char* val, pos_t size)
+void DBFS::File::write(char* val, pos_t size)
 {
-	st.seekp(pos);
+	//st.seekp(pos);
 	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
@@ -120,6 +151,7 @@ DBFS::pos_t DBFS::File::write(char* val, pos_t size)
 	}
 	#endif
 	st.write(val, size);
+	pos_p += size;
 	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
@@ -127,12 +159,11 @@ DBFS::pos_t DBFS::File::write(char* val, pos_t size)
 		assert(false);
 	}
 	#endif
-	return pos = st.tellp();
 }
 
-DBFS::pos_t DBFS::File::write(fstream& val, pos_t size)
+void DBFS::File::write(fstream& val, pos_t size)
 {
-	st.seekp(pos);
+	//st.seekp(pos);
 	char* buf = new char[ch_size];
 	while(size){
 		pos_t sz = std::min(ch_size, size);
@@ -146,14 +177,17 @@ DBFS::pos_t DBFS::File::write(fstream& val, pos_t size)
 		SHOW_ERROR;
 	}
 	#endif
-	return pos = st.tellp();
 }
 
 DBFS::pos_t DBFS::File::size()
 {
-	st.seekg(0, st.end);
-	pos_t p = st.tellg();
-	return --p;
+	///st.seekg(0, st.end);
+	///pos_t p = st.tellg();
+	///return --p;
+	st.seekp(0, st.end);
+	pos_p = st.tellp();
+	p_updated = true;
+	return pos_p;
 }
 
 bool DBFS::File::is_open()
@@ -233,7 +267,7 @@ DBFS::fstream DBFS::File::create_stream(string filename)
 		create_path(filepath);
 		std::ofstream f(filepath);
 	}
-	return fstream(filepath);
+	return fstream(filepath, std::fstream::binary | std::fstream::in | std::fstream::out);
 }
 
 DBFS::string DBFS::get_file_path(string filename)

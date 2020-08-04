@@ -114,7 +114,7 @@ DESCRIBE("DBFS", {
 			
 			DESCRIBE("Seek for 4th bit", {
 				BEFORE_ALL({
-					f->seek(4);
+					f->seekg(4);
 				});
 				
 				IT("current char should be equal `4`", {
@@ -125,17 +125,17 @@ DESCRIBE("DBFS", {
 				});
 			});
 			
-			DESCRIBE("Seek for 2th bit and put 3 numbers", {
+			DESCRIBE("Seekp for 2th bit and put 3 numbers", {
 				
 				BEFORE_ALL({				
-					f->seek(1);
+					f->seekp(1);
 					for(int i=1;i<=3;i++){
 						f->write(i);
 					}
 				});
 				
-				IT("tell should be equal to `4`", {
-					EXPECT(f->tell()).toBe(4);
+				IT("tellp should be equal to `4`", {
+					EXPECT(f->tellp()).toBe(4);
 				});
 				
 				IT("next char should be equal `4", {
@@ -147,21 +147,23 @@ DESCRIBE("DBFS", {
 			
 			DESCRIBE("Seek for 6th bit and read int", {
 				int a;
+				string str;
 				BEFORE_ALL({
-					f->seek(6);
+					f->seekg(6);
 					f->read(a);
 				});
 				
 				IT("`a` should be equal to `6789`", {
 					EXPECT(a).toBe(6789);
+					//INFO_PRINT("Read number: " + str);
 				});
 			});
 			
 			DESCRIBE("Seek for 0th bit and read char buffer of size()", {
 				char* buf = new char[50];
 				BEFORE_ALL({
-					f->seek(0);
 					int sz = f->size();
+					f->seekg(0);
 					f->read(buf, --sz);
 					buf[sz] = '\0';
 				});
@@ -282,7 +284,7 @@ DESCRIBE("DBFS", {
 				t2.join();
 			});
 			IT("content of file should equal to `00000000001111111111`",{
-				f->seek(0);
+				f->seekg(0);
 				char* buf = new char[20];
 				f->read(buf,20);
 				EXPECT(string(buf,20)).toBe("00000000001111111111");

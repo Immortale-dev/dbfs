@@ -52,20 +52,25 @@ namespace DBFS{
 			virtual ~File();
 			
 			template<typename T>
-			pos_t write(T val);
+			void write(T val);
 			
 			template<typename T>
 			void read(T& val);
 			
-			pos_t write(char* val, pos_t size);
+			void write(char* val, pos_t size);
 			void read(char* val, pos_t size);
-			pos_t write(fstream& val, pos_t size);
+			void write(fstream& val, pos_t size);
 			
 			bool open();
 			bool open(string filename);
 			void close();
-			void seek(pos_t p);
-			pos_t tell();
+			
+			void seekp(pos_t p);
+			void seekg(pos_t p);
+			
+			pos_t tellp();
+			pos_t tellg();
+			
 			pos_t size();
 			
 			string name();
@@ -83,7 +88,8 @@ namespace DBFS{
 			std::lock_guard<std::mutex> get_lock();
 			
 		private:
-			pos_t pos = 0;
+			pos_t pos_p = 0, pos_g = 0;
+			bool p_updated = false, g_updated = false;
 			fstream st;
 			bool opened = false;
 			string filename = "";
@@ -113,7 +119,7 @@ namespace DBFS{
 template<typename T>
 void DBFS::File::read(T& val)
 {
-	st.seekg(pos);
+	//st.seekg(pos);
 	#ifdef DEBUG
 	if(st.fail()){
 		SHOW_ERROR;
@@ -126,20 +132,22 @@ void DBFS::File::read(T& val)
 		SHOW_ERROR;
 	}
 	#endif
-	pos = st.tellg();
+	pos_g += st.gcount();
+	//g_updated = false;
+	//pos = st.tellg();
 }
 
 template<typename T>
-DBFS::pos_t DBFS::File::write(T val)
+void DBFS::File::write(T val)
 {
-	st.seekp(pos);
+	//st.seekp(pos);
 	st << val;
 	#ifdef DEBUG
 	if(st.fail()){
 		SHOW_ERROR;
 	}
 	#endif
-	return pos = st.tellp();
+	p_updated = false;
 }
 
 
