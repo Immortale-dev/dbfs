@@ -59,7 +59,6 @@ namespace DBFS{
 			
 			void write(char* val, pos_t size);
 			void read(char* val, pos_t size);
-			void write(fstream& val, pos_t size);
 			
 			bool open();
 			bool open(string filename);
@@ -119,7 +118,6 @@ namespace DBFS{
 template<typename T>
 void DBFS::File::read(T& val)
 {
-	//st.seekg(pos);
 	#ifdef DEBUG
 	if(st.fail()){
 		SHOW_ERROR;
@@ -133,14 +131,12 @@ void DBFS::File::read(T& val)
 	}
 	#endif
 	pos_g += st.gcount();
-	//g_updated = false;
-	//pos = st.tellg();
+	g_updated = false;
 }
 
 template<typename T>
 void DBFS::File::write(T val)
 {
-	//st.seekp(pos);
 	st << val;
 	#ifdef DEBUG
 	if(st.fail()){

@@ -84,6 +84,7 @@ void DBFS::File::seekg(pos_t p)
 		pos_g = p;
 		return;
 	}
+	g_updated = true;
 	pos_g = p;
 	st.seekg(p);
 }
@@ -118,9 +119,6 @@ void DBFS::File::read(char* val, pos_t size)
 	if(!is_open()){
 		SHOW_ERROR;
 	}
-	#endif
-	//st.seekg(pos);
-	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
 		std::cout << "Filename: " + name() + "\n";
@@ -136,13 +134,11 @@ void DBFS::File::read(char* val, pos_t size)
 		assert(false);
 	}
 	#endif
-	//pos = st.tellg();
 }
 
 
 void DBFS::File::write(char* val, pos_t size)
 {
-	//st.seekp(pos);
 	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
@@ -161,29 +157,8 @@ void DBFS::File::write(char* val, pos_t size)
 	#endif
 }
 
-void DBFS::File::write(fstream& val, pos_t size)
-{
-	//st.seekp(pos);
-	char* buf = new char[ch_size];
-	while(size){
-		pos_t sz = std::min(ch_size, size);
-		val.read(buf, sz);
-		st.write(buf, sz);
-		size -= sz;
-	}
-	delete[] buf;
-	#ifdef DEBUG
-	if(fail()){
-		SHOW_ERROR;
-	}
-	#endif
-}
-
 DBFS::pos_t DBFS::File::size()
 {
-	///st.seekg(0, st.end);
-	///pos_t p = st.tellg();
-	///return --p;
 	st.seekp(0, st.end);
 	pos_p = st.tellp();
 	p_updated = true;
