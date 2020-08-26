@@ -6,9 +6,10 @@
 #ifdef DEBUG
 	#include <errno.h>
 	#include <iostream>
-	#define SHOW_ERROR std::cout<<"Error on L"<<__LINE__<<": "<<strerror(errno)<<std::endl
+	#define SHOW_ERROR std::cout<<"Error on L"<<__LINE__<<": "<<std::strerror(errno)<<std::endl
 #endif
 
+#include <cstring>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
