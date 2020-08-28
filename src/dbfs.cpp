@@ -380,6 +380,15 @@ DBFS::File* DBFS::create()
 	return create(filename);
 }
 
+DBFS::File* DBFS::create(file_hook_fn onopen, file_hook_fn onclose)
+{
+	string filename;
+	do{
+		filename = DBFS::random_filename();
+	}while(DBFS::exists(filename));
+	return new File(filename, onopen, onclose);
+}
+
 DBFS::File* DBFS::create(string filename)
 {
 	return new File(filename);

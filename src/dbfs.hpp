@@ -109,6 +109,7 @@ namespace DBFS{
 	string random_filename();
 	File* create();
 	File* create(string filename);
+	File* create(file_hook_fn onopen, file_hook_fn onclose);
 	bool move(string oldname, string newname);
 	bool remove(string filename, bool remove_path = true);
 	bool exists(string filename);
