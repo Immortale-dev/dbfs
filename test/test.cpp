@@ -180,6 +180,58 @@ DESCRIBE("DBFS", {
 		});
 	});
 	
+	DESCRIBE("File hooks test", {
+		int open_count, close_count;
+		open_count = close_count = 0;
+		DBFS::File* f;
+		
+		IT("Create file with on_opne, on_close assigned", {
+			
+			f = new DBFS::File(DBFS::random_filename(), [&open_count](auto* file){ open_count++; }, [&close_count](auto* file){ close_count++; });
+			
+			EXPECT(open_count).toBe(1);
+			EXPECT(close_count).toBe(0);
+		});
+		
+		IT("Move file to new destination", {
+			f->move(DBFS::random_filename());
+			
+			EXPECT(open_count).toBe(2);
+			EXPECT(close_count).toBe(1);
+		});
+		
+		IT("Close file", {
+			f->close();
+			
+			EXPECT(open_count).toBe(2);
+			EXPECT(close_count).toBe(2);
+			
+		});
+		
+		IT("Reopen file",{
+			
+			f->open();
+			
+			EXPECT(open_count).toBe(3);
+			EXPECT(close_count).toBe(2);
+		});
+		
+		IT("Assign delete on close and free file memory",{
+			
+			string name = f->name();
+			
+			f->on_close([](auto* file){
+				DBFS::remove(file->name());
+			});
+			
+			delete f;
+			
+			EXPECT(open_count).toBe(3);
+			EXPECT(close_count).toBe(3);
+			EXPECT(!DBFS::exists(name));
+		});
+	});
+	
 	DESCRIBE("File::on_close", {
 		IT("should delete file after it is closed", {
 			DBFS::File* f = DBFS::create();

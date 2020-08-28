@@ -32,10 +32,12 @@
 
 namespace DBFS{
 	
+	class File;
 		
 	using string = std::string;
 	using pos_t = long int;
 	using fstream = std::fstream;
+	using file_hook_fn = std::function<void(File*)>;
 
 	extern std::mt19937 mt_rand;
 	extern string root;
@@ -51,6 +53,7 @@ namespace DBFS{
 		public:
 			File();
 			File(string filename);
+			File(string filename, file_hook_fn onopen, file_hook_fn onclose);
 			virtual ~File();
 			
 			template<typename T>
@@ -83,7 +86,8 @@ namespace DBFS{
 			bool fail();
 			fstream& stream();
 			
-			void on_close(std::function<void(File*)> fn);
+			void on_close(file_hook_fn fn);
+			void on_open(file_hook_fn fn);
 			
 			std::mutex& get_mutex();
 			std::lock_guard<std::mutex> get_lock();
@@ -95,7 +99,7 @@ namespace DBFS{
 			bool opened = false;
 			string filename = "";
 			std::mutex mtx, rmtx;
-			std::list<std::function<void(File*)> > on_close_fns;
+			std::list<file_hook_fn> on_close_fns, on_open_fns;
 			
 			
 			fstream create_stream(string filename);

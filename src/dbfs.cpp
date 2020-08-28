@@ -34,6 +34,13 @@ DBFS::File::File(string filename)
 	open(filename);
 }
 
+DBFS::File::File(string filename, file_hook_fn onopen, file_hook_fn onclose)
+{
+	on_open(onopen);
+	on_close(onclose);
+	open(filename);
+}
+
 bool DBFS::File::open()
 {
 	if(is_open() && fail()){
@@ -50,12 +57,18 @@ bool DBFS::File::open()
 			break;
 	}
 	p_updated = g_updated = false;
+	
 	#ifdef DEBUG
 	if(fail()){
 		std::cout << "PROBLEM_FILE_IS: " + filename + "\n";
 		SHOW_ERROR;
 	}
 	#endif
+	
+	for(auto& it : on_open_fns){
+		it(this);
+	}
+	
 	return opened = !fail();
 }
 
@@ -229,9 +242,14 @@ std::lock_guard<std::mutex> DBFS::File::get_lock()
 	return std::lock_guard<std::mutex>(get_mutex());
 }
 
-void DBFS::File::on_close(std::function<void(File*)> fn)
+void DBFS::File::on_close(file_hook_fn fn)
 {
 	on_close_fns.push_back(fn);
+}
+
+void DBFS::File::on_open(file_hook_fn fn)
+{
+	on_open_fns.push_back(fn);
 }
 
 DBFS::fstream DBFS::File::create_stream(string filename)
