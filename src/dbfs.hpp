@@ -21,6 +21,7 @@
 #include <mutex>
 #include <cassert>
 #include <functional>
+#include <list>
 
 #ifdef _WIN32
 	#include <direct.h>
@@ -94,7 +95,7 @@ namespace DBFS{
 			bool opened = false;
 			string filename = "";
 			std::mutex mtx, rmtx;
-			std::function<void(File*)> on_close_fn;
+			std::list<std::function<void(File*)> > on_close_fns;
 			
 			
 			fstream create_stream(string filename);

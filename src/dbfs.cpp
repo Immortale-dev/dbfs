@@ -181,8 +181,8 @@ void DBFS::File::close()
 		return;
 	opened = false;
 	st.close();
-	if(on_close_fn){
-		on_close_fn(this);
+	for(auto& it : on_close_fns){
+		it(this);
 	}
 }
 
@@ -231,7 +231,7 @@ std::lock_guard<std::mutex> DBFS::File::get_lock()
 
 void DBFS::File::on_close(std::function<void(File*)> fn)
 {
-	on_close_fn = fn;
+	on_close_fns.push_back(fn);
 }
 
 DBFS::fstream DBFS::File::create_stream(string filename)

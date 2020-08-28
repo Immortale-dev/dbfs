@@ -184,11 +184,16 @@ DESCRIBE("DBFS", {
 		IT("should delete file after it is closed", {
 			DBFS::File* f = DBFS::create();
 			string name = f->name();
+			bool called = false;
+			f->on_close([&called](DBFS::File* file){
+				called = true;
+			});
 			f->on_close([](DBFS::File* file){
 				file->remove();
 			});
 			f->close();
 			EXPECT(!DBFS::exists(name));
+			EXPECT(called).toBe(true);
 		});
 	});
 	
