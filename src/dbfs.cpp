@@ -1,4 +1,5 @@
 #include "dbfs.hpp"
+#include <thread>
 
 namespace DBFS{
 	
@@ -51,15 +52,19 @@ bool DBFS::File::open()
 	}
 	
 	int trys = 5;
+	int try_ms = 1;
 	while(trys--){
 		st = create_stream(filename);
-		if(!fail())
+		if(!fail()){
 			break;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(try_ms));
+		try_ms *= 10;
 	}
 	p_updated = g_updated = false;
 	
 	#ifdef DEBUG
-	if(fail()){
+	if(fail()){ 
 		std::cout << "PROBLEM_FILE_IS: " + filename + "\n";
 		SHOW_ERROR;
 	}
