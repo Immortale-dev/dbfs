@@ -282,7 +282,7 @@ void DBFS::create_path(string filepath)
 	for(int i=0;i<filepath_size;i++){
 		if(filepath[i] == '/' && i > 0){
 			if(curr == "" || curr == "." || curr == ".."){
-				//curr.push_back(filepath[i]);
+				curr.push_back(filepath[i]);
 				continue;
 			}
 			DBFS::mkdir(curr);
