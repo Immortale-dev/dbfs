@@ -7,6 +7,7 @@
 	#include <errno.h>
 	#include <iostream>
 	#define SHOW_ERROR std::cout<<"Error on L"<<__LINE__<<": "<<std::strerror(errno)<<std::endl
+	#define SHOW_FILENAME std::cout<<"Filename: "<<name()<<std::endl
 #endif
 
 #include <cstring>
@@ -21,6 +22,7 @@
 #include <mutex>
 #include <cassert>
 #include <functional>
+#include <thread>
 #include <list>
 
 #ifdef _WIN32
@@ -43,10 +45,7 @@ namespace DBFS{
 	extern string root;
 	extern string suffix;
 	extern string prefix;
-	extern pos_t ch_size;
 	extern int filelength;
-	extern int max_try;
-	extern bool clear_folders;
 	extern std::mutex mtx;
 	
 	class File{
@@ -101,7 +100,6 @@ namespace DBFS{
 			std::mutex mtx, rmtx;
 			std::list<file_hook_fn> on_close_fns, on_open_fns;
 			
-			
 			fstream create_stream(string filename);
 	};
 	
@@ -128,13 +126,14 @@ void DBFS::File::read(T& val)
 	#ifdef DEBUG
 	if(st.fail()){
 		SHOW_ERROR;
-		std::cout << "FILE: " + name() + "\n";
+		SHOW_FILENAME;
 	}
 	#endif
 	st >> val;
 	#ifdef DEBUG
 	if(st.fail()){
 		SHOW_ERROR;
+		SHOW_FILENAME;
 	}
 	#endif
 	pos_g += st.gcount();
@@ -148,11 +147,10 @@ void DBFS::File::write(T val)
 	#ifdef DEBUG
 	if(st.fail()){
 		SHOW_ERROR;
+		SHOW_FILENAME;
 	}
 	#endif
 	p_updated = false;
 }
-
-
 
 #endif // DBFS_H

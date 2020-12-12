@@ -1,5 +1,4 @@
 #include "dbfs.hpp"
-#include <thread>
 
 namespace DBFS{
 	
@@ -8,21 +7,17 @@ namespace DBFS{
 	string root = ".";
 	string suffix = "";
 	string prefix = "";
-	pos_t ch_size = 4*1024;
 	int filelength = 10;
-	int max_try = 25;
-	bool clear_folders = true;
 	std::mutex mtx;
 	std::mutex mtx_r;
 	bool suffix_minutex = true;
 	
+	std::mutex mtxs[36*36];
 }
-
-
 
 DBFS::File::File()
 {
-	
+	// ctor
 }
 
 DBFS::File::~File()
@@ -47,6 +42,7 @@ bool DBFS::File::open()
 	if(is_open() && fail()){
 		#ifdef DEBUG
 		SHOW_ERROR;
+		SHOW_FILENAME;
 		#endif
 		return true;
 	}
@@ -65,8 +61,8 @@ bool DBFS::File::open()
 	
 	#ifdef DEBUG
 	if(fail()){ 
-		std::cout << "PROBLEM_FILE_IS: " + filename + "\n";
 		SHOW_ERROR;
+		SHOW_FILENAME;
 	}
 	#endif
 	
@@ -130,16 +126,16 @@ DBFS::fstream& DBFS::File::stream()
 	return st;
 }
 
-
 void DBFS::File::read(char* val, pos_t size)
 {
 	#ifdef DEBUG
 	if(!is_open()){
 		SHOW_ERROR;
+		SHOW_FILENAME;
 	}
 	if(fail()){
 		SHOW_ERROR;
-		std::cout << "Filename: " + name() + "\n";
+		SHOW_FILENAME;
 		assert(false);
 	}
 	#endif
@@ -148,19 +144,18 @@ void DBFS::File::read(char* val, pos_t size)
 	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
-		std::cout << "Filename: " + name() + "\n";
+		SHOW_FILENAME;
 		assert(false);
 	}
 	#endif
 }
-
 
 void DBFS::File::write(char* val, pos_t size)
 {
 	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
-		std::cout << "Filename: " + name() + "\n";
+		SHOW_FILENAME;
 		assert(false);
 	}
 	#endif
@@ -169,7 +164,7 @@ void DBFS::File::write(char* val, pos_t size)
 	#ifdef DEBUG
 	if(fail()){
 		SHOW_ERROR;
-		std::cout << "Filename: " + name() + "\n";
+		SHOW_FILENAME;
 		assert(false);
 	}
 	#endif
@@ -216,6 +211,7 @@ bool DBFS::File::move(string newname)
 	if(!r){
 		#ifdef DEBUG
 		SHOW_ERROR;
+		SHOW_FILENAME;
 		#endif
 		open();
 		return false;
@@ -328,7 +324,6 @@ int DBFS::rmdir(string path)
 
 bool DBFS::exists(string filename)
 {
-	//std::lock_guard<std::mutex> lock(mtx);
 	if(FILE *file = fopen(get_file_path(filename).c_str(), "r")){
 		fclose(file);
 		return true;

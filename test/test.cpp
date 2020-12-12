@@ -11,6 +11,8 @@
 
 using namespace std;
 
+SCENARIO_START
+
 DESCRIBE("DBFS", {
 	
 	srand(time(NULL));
@@ -350,8 +352,6 @@ DESCRIBE("DBFS", {
 	});
 });
 
+SCENARIO_END
 
-int main(){
-	
-	return 0;
-}
+int main(){ return 0; }
