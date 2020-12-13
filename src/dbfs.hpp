@@ -40,13 +40,8 @@ namespace DBFS{
 	using pos_t = long int;
 	using fstream = std::fstream;
 	using file_hook_fn = std::function<void(File*)>;
-
-	extern std::mt19937 mt_rand;
-	extern string root;
-	extern string suffix;
-	extern string prefix;
+	
 	extern int filelength;
-	extern std::mutex mtx;
 	
 	class File{
 		public:
@@ -111,11 +106,19 @@ namespace DBFS{
 	bool move(string oldname, string newname);
 	bool remove(string filename, bool remove_path = true);
 	bool exists(string filename);
-	void create_path(string filename);
-	void remove_path(string filepath);
+
+	void set_root(string path);
+	void set_prefix(string prefix);
+	void set_suffix(string suffix);
+	void set_filename_length(int length);
+	void use_suffix_minutes(bool use);
 	
-	int mkdir(string path);
-	int rmdir(string path);
+	namespace details{	
+		void create_path(string filename);
+		void remove_path(string filepath);
+		int mkdir(string path);
+		int rmdir(string path);
+	}
 }
 
 

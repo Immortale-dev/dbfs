@@ -16,7 +16,8 @@ SCENARIO_START
 DESCRIBE("DBFS", {
 	
 	srand(time(NULL));
-	DBFS::root = "tmp";
+	
+	DBFS::set_root("tmp");
 	
 	IT("should create file called `abcdef` in ./tmp/ab/cd dir", {
 		DBFS::create("abcdef")->close();
@@ -86,6 +87,28 @@ DESCRIBE("DBFS", {
 			IT("File location should not exists", {
 				EXPECT(DBFS::exists(name)).toBe(false);
 			});
+		});
+	});
+	
+	DESCRIBE("File write text at diff positions", {
+		DBFS::File* f;
+		BEFORE_EACH({
+			f = DBFS::create();
+		});
+		
+		AFTER_EACH({
+			f->remove();
+		});
+		
+		IT("Write text and the rewrite couple of letters", {
+			f->write("F**k this shit I'm out!");
+			f->seekp(1);
+			f->write("uc");
+			int sz = f->size();
+			char* buf = new char[sz];
+			f->seekg(0);
+			f->read(buf,sz);
+			EXPECT(string(buf,sz)).toBe("Fuck this shit I'm out!");
 		});
 	});
 	

@@ -258,7 +258,7 @@ DBFS::fstream DBFS::File::create_stream(string filename)
 	string filepath = DBFS::get_file_path(filename);
 	std::lock_guard<std::mutex> lock(mtx);
 	if(!exists(filename)){
-		create_path(filepath);
+		details::create_path(filepath);
 		std::ofstream f(filepath);
 	}
 	return fstream(filepath, std::fstream::binary | std::fstream::in | std::fstream::out);
@@ -271,7 +271,7 @@ DBFS::string DBFS::get_file_path(string filename)
 	return root + "/" + f1 + "/" + f2 + "/" + prefix + filename + suffix;
 }
 
-void DBFS::create_path(string filepath)
+void DBFS::details::create_path(string filepath)
 {
 	string curr = "";
 	int filepath_size = filepath.size();
@@ -281,25 +281,25 @@ void DBFS::create_path(string filepath)
 				curr.push_back(filepath[i]);
 				continue;
 			}
-			DBFS::mkdir(curr);
+			DBFS::details::mkdir(curr);
 		}
 		curr.push_back(filepath[i]);
 	}
 }
 
-void DBFS::remove_path(string path)
+void DBFS::details::remove_path(string path)
 {
 	char c = '\0';
 	while(path != root){
 		if(c == '/'){
-			DBFS::rmdir(path.c_str());
+			DBFS::details::rmdir(path.c_str());
 		}
 		c = path.back();
 		path.pop_back();
 	}
 }
 
-int DBFS::mkdir(string path)
+int DBFS::details::mkdir(string path)
 {
 	int err = 0;
 	#if defined(_WIN32)
@@ -311,7 +311,7 @@ int DBFS::mkdir(string path)
 	return err;
 }
 
-int DBFS::rmdir(string path)
+int DBFS::details::rmdir(string path)
 {
 	int err = 0;
 	#if defined(_WIN32)
@@ -334,14 +334,14 @@ bool DBFS::exists(string filename)
 bool DBFS::move(string oldname, string newname)
 {
 	mtx.lock();
-	DBFS::create_path(get_file_path(newname));
+	DBFS::details::create_path(get_file_path(newname));
 	int r = std::rename(get_file_path(oldname).c_str(), get_file_path(newname).c_str());
 	#ifdef DEBUG
 	if(r != 0){
 		SHOW_ERROR;
 	}
 	#endif
-	DBFS::remove_path(get_file_path(oldname));
+	DBFS::details::remove_path(get_file_path(oldname));
 	mtx.unlock();
 	
 	return !r;
@@ -365,7 +365,7 @@ bool DBFS::remove(string filename, bool rem_path)
 		return !r;
 	}
 		
-	DBFS::remove_path(path);
+	DBFS::details::remove_path(path);
 	mtx.unlock();
 	
 	return !r;
@@ -416,4 +416,29 @@ DBFS::string DBFS::random_filename()
 	
 	mtx_r.unlock();
 	return ret;
+}
+
+void DBFS::set_root(string path)
+{
+	root = path;
+}
+
+void DBFS::set_prefix(string prefix)
+{
+	prefix = prefix;
+}
+
+void DBFS::set_suffix(string suffix)
+{
+	suffix = suffix;
+}
+
+void DBFS::set_filename_length(int length)
+{
+	filelength = length;
+}
+
+void DBFS::use_suffix_minutes(bool use)
+{
+	suffix_minutex = use;
 }
